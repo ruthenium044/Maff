@@ -18,4 +18,6 @@ public:
 
 	bool CheckBitmaskOr(int flag, int mask);
 	bool CheckBitmaskAnd(int flag, int mask);
+
+	
 };

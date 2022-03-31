@@ -27,5 +27,5 @@ bool UBitFunctions::CheckBitmaskOr(int flag, int mask)
 
 bool UBitFunctions::CheckBitmaskAnd(int flag, int mask)
 {
-	return (flag & mask) != mask;
+	return (flag & mask) == mask;
 }
