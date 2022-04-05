@@ -88,20 +88,20 @@ int UBitFunctions::GetIndex(size_t x, size_t y, size_t w)
 	return x * w + y;
 }
 
-int UBitFunctions::GetVelueMask(size_t index)
+int UBitFunctions::GetValueMask(size_t index)
 {
-	return 1L << index;
+	return static_cast<BitType>(1) << index;
 }
 
 int UBitFunctions::SetCellState(BitType board, size_t index)
 {
-	BitType newBit = GetVelueMask(index);
+	BitType newBit = GetValueMask(index);
 	return AddBitflag(board, newBit);
 }
 
 bool UBitFunctions::GetCellState(BitType board, size_t index)
 {
-	BitType mask = GetVelueMask(index);
+	BitType mask = GetValueMask(index);
 	return CheckBitmaskIntersect(board, mask);
 }
 

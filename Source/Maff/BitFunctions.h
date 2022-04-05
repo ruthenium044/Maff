@@ -30,7 +30,7 @@ public:
 	static BitType UnPackData(BitType packed, size_t position, BitType data);
 
 	static BitType GetIndex(size_t x, size_t y, size_t w);
-	static BitType GetVelueMask(size_t index);
+	static BitType GetValueMask(size_t index);
 	static BitType SetCellState(BitType board, size_t index);
 	static bool GetCellState(BitType board, size_t index);
 	static size_t GetCellCount(BitType board);
