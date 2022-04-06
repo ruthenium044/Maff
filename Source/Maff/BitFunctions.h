@@ -6,7 +6,7 @@
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "BitFunctions.generated.h"
 
-typedef int BitType;
+typedef uint64 BitType;
 
 UCLASS()
 class MAFF_API UBitFunctions : public UBlueprintFunctionLibrary
@@ -28,12 +28,12 @@ public:
 	static bool CheckBitmaskHas(BitType flag, BitType mask);
 	static BitType PackData(BitType packed, size_t position, BitType data);
 	static BitType UnPackData(BitType packed, size_t position, BitType data);
-
-	static BitType GetIndex(size_t x, size_t y, size_t w);
-	static BitType GetValueMask(size_t index);
-	static BitType SetCellState(BitType board, size_t index);
-	static bool GetCellState(BitType board, size_t index);
-	static size_t GetCellCount(BitType board);
-	static size_t GetEmptyCellCount(BitType board);
+	
+	static BitType BbGetIndex(size_t x, size_t y, size_t w);
+	static BitType BbGetValueMask(size_t index);
+	static BitType BbSetCellState(BitType board, size_t index);
+	static bool BbGetCellState(BitType board, size_t index);
+	static size_t BbGetCellCount(BitType board);
+	static size_t BbGetEmptyCellCount(BitType board);
 	
 };

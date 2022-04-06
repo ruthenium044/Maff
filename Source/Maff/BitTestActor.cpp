@@ -110,18 +110,18 @@ void ABitTestActor::BeginPlay()
 
 	Print("bitboard");
 	int bitboard = 0;
-	bitboard = UBitFunctions::SetCellState(bitboard, UBitFunctions::GetIndex(0, 0, 8));
+	bitboard = UBitFunctions::BbSetCellState(bitboard, UBitFunctions::BbGetIndex(0, 0, 8));
 	PrintBit(bitboard, 8);
-	bitboard = UBitFunctions::SetCellState(bitboard, UBitFunctions::GetIndex(1, 1, 8));
+	bitboard = UBitFunctions::BbSetCellState(bitboard, UBitFunctions::BbGetIndex(1, 1, 8));
 	PrintBit(bitboard, 8);
 
-	bool bit = UBitFunctions::GetCellState(bitboard, UBitFunctions::GetIndex(0, 0, 8));
+	bool bit = UBitFunctions::BbGetCellState(bitboard, UBitFunctions::BbGetIndex(0, 0, 8));
 	PrintBit(bit); //0000 0001
-	bit = UBitFunctions::GetCellState(bitboard, UBitFunctions::GetIndex(2, 2, 8));
+	bit = UBitFunctions::BbGetCellState(bitboard, UBitFunctions::BbGetIndex(2, 2, 8));
 	PrintBit(bit); //0000 0000
-	int count = UBitFunctions::GetCellCount(bitboard);
+	int count = UBitFunctions::BbGetCellCount(bitboard);
 	PrintBit(count); //0000 0010
-	count = UBitFunctions::GetEmptyCellCount(bitboard);
+	count = UBitFunctions::BbGetEmptyCellCount(bitboard);
 	PrintBit(count); //0000 0010
 
 	
