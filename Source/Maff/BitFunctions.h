@@ -12,6 +12,9 @@ UCLASS()
 class MAFF_API UBitFunctions : public UBlueprintFunctionLibrary
 {
 	GENERATED_BODY()
+
+	//todo doesn't work with longer arrays of bits and should
+	//actually work with it - Requires an underlying "true" type
 	
 public:
 	static FString GetBitSting(BitType value, size_t width);
