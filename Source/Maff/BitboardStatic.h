@@ -3,25 +3,30 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
 #include "Core/Public/Containers/Array.h"
 #include "BitTile.h"
 
 #include "BitboardStatic.generated.h"
 
 UCLASS()
-class MAFF_API ABitboardStatic : public AActor
+class MAFF_API ABitboardStatic : public APawn
 {
 	GENERATED_BODY()
-	
 public:	
 	// Sets default values for this actor's properties
 	ABitboardStatic();
+
+	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
+	void HandleLMB(FKey key);
+	
 	void SpawnTile(TArray<TSubclassOf<ABitTile>>& bitBPs, TArray<uint64>& bitboard,
 		TArray<ABitTile*>& tileActors, int x, int y, int index);
-	void SpawnAllTiles();
 	void SpawnTree(int x, int y, int index);
+	void SpawnAllTiles();
 	void SpawnAllTrees();
+
+	FIntVector WorldToGrid(FVector pos);
+	FVector GridToWorld(FIntVector coord);
 
 	UPROPERTY(EditAnywhere)
 	float tileSizeX = 100;
@@ -52,5 +57,4 @@ public:
 	TArray<TSubclassOf<ABitTile>> bitTilesBPs;
 	UPROPERTY(EditAnywhere)
 	TArray<TSubclassOf<ABitTile>> bitObjsBPs;
-	
 };

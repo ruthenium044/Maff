@@ -123,8 +123,6 @@ void ABitTestActor::BeginPlay()
 	PrintBit(count); //0000 0010
 	count = UBitFunctions::BbGetEmptyCellCount(bitboard);
 	PrintBit(count); //0000 0010
-
-	
 }
 
 

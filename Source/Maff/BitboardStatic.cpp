@@ -13,8 +13,18 @@ ABitboardStatic::ABitboardStatic()
 	PrimaryActorTick.bCanEverTick = true;
 }
 
+void ABitboardStatic::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+{
+	PlayerInputComponent->BindAction(TEXT("MouseLeftClicked"),IE_Pressed, this, &ABitboardStatic::HandleLMB);
+}
+
+void ABitboardStatic::HandleLMB(FKey key)
+{
+	SpawnTree(0,0,4);
+}
+
 void ABitboardStatic::SpawnTile(TArray<TSubclassOf<ABitTile>>& bitBPs,
-	TArray<uint64>& bitboard, TArray<ABitTile*>& tileActors, int x, int y, int rand)
+                                TArray<uint64>& bitboard, TArray<ABitTile*>& tileActors, int x, int y, int rand)
 {
 	FVector pos(x * tileSizeX - offsetX, y * tileSizeY - offsetY, 0);
 	pos += GetActorLocation();
@@ -23,6 +33,11 @@ void ABitboardStatic::SpawnTile(TArray<TSubclassOf<ABitTile>>& bitBPs,
 		(bitboard[rand], UBitFunctions::BbGetIndex(x, y, tilesX));
 	tileActors[UBitFunctions::BbGetIndex(x, y, tilesX)] =
 		GetWorld()->SpawnActor<ABitTile>(bitBPs[rand], pos, GetActorRotation());
+}
+
+void ABitboardStatic::SpawnTree(int x, int y, int index)
+{
+	SpawnTile(bitObjsBPs, objBitboards, objects, x, y, index);
 }
 
 void ABitboardStatic::SpawnAllTiles()
@@ -37,11 +52,6 @@ void ABitboardStatic::SpawnAllTiles()
 	}
 }
 
-void ABitboardStatic::SpawnTree(int x, int y, int index)
-{
-	SpawnTile(bitObjsBPs, objBitboards, objects, x, y, index);
-}
-
 void ABitboardStatic::SpawnAllTrees()
 {
 	for (int x = 0; x < tilesX; ++x)
@@ -49,19 +59,17 @@ void ABitboardStatic::SpawnAllTrees()
 		for (int y = 0; y < tilesY; ++y)
 		{
 			if (UBitFunctions::BbGetCellState(tileBitboards[0],
-			                                  UBitFunctions::BbGetIndex(x, y, tilesX)))
+			UBitFunctions::BbGetIndex(x, y, tilesX)))
 			{
 				SpawnTree(x, y, 0);
 			}
-			
 			if (UBitFunctions::BbGetCellState(tileBitboards[4],
-													  UBitFunctions::BbGetIndex(x, y, tilesX)))
+			UBitFunctions::BbGetIndex(x, y, tilesX)))
 			{
 				SpawnTree(x, y, 4);
 			}
-			
 			if (UBitFunctions::BbGetCellState(tileBitboards[2] | tileBitboards[3],
-			                                  UBitFunctions::BbGetIndex(x, y, tilesX)))
+			UBitFunctions::BbGetIndex(x, y, tilesX)))
 			{
 				SpawnTree(x, y, 5);
 			}
@@ -69,12 +77,29 @@ void ABitboardStatic::SpawnAllTrees()
 	}
 }
 
+FIntVector ABitboardStatic::WorldToGrid(FVector pos)
+{
+	FIntVector coord = {FMath::RoundToInt((pos.X + offsetX) / tileSizeX),
+						FMath::RoundToInt((pos.Y + offsetY) / tileSizeY), 0};
+	return coord;
+}
+
+FVector ABitboardStatic::GridToWorld(FIntVector coord)
+{
+	int index = UBitFunctions::BbGetIndex(coord.X, coord.Y, tilesX);
+	bool checkBounds = coord.X >= 0 && coord.X < tilesX && coord.Y >= 0 && coord.Y < tilesY;
+	if (checkBounds && index < tilesX * tilesY && index >= 0)
+	{
+		return tiles[index]->GetActorLocation();
+	}
+	return FVector::ZeroVector;
+}
+
 // Called when the game starts or when spawned
 void ABitboardStatic::BeginPlay()
 {
 	Super::BeginPlay();
 	controller = GetWorld()->GetFirstPlayerController();
-	//controller->SetViewTarget(this);
 	controller->SetShowMouseCursor(true);
 	
 	for(auto& tile : bitTilesBPs)
@@ -89,7 +114,8 @@ void ABitboardStatic::BeginPlay()
 	objects.Init(nullptr, tilesX * tilesY);
 	
 	SpawnAllTiles();
-	SpawnAllTrees();
+	//SpawnAllTrees();
+	SpawnTree(0, 0, 0);
 }
 
 // Called every frame
@@ -100,13 +126,24 @@ void ABitboardStatic::Tick(float DeltaTime)
 
 	FVector outpos;
 	FVector outdir;
-	controller->DeprojectMousePositionToWorld(outpos, outdir);
-
+	if(!controller->DeprojectMousePositionToWorld(outpos, outdir))
+	{
+		return;
+	}
 	FPlane plane{GetActorLocation(), GetActorUpVector()};
-	auto intersectPoint = FMath::RayPlaneIntersection(outpos, outdir, plane);
+	FVector intersectPoint = FMath::RayPlaneIntersection(outpos, outdir, plane);
 
-	//todo clamp this to the grid
-	objects[0]->SetActorLocation(intersectPoint);
+	FIntVector gridPos = WorldToGrid(intersectPoint);
+	FVector worldPos = GridToWorld(gridPos);
+	
+	if (worldPos == FVector::ZeroVector)
+	{
+		objects[0]->SetActorLocation(intersectPoint);
+	}
+	else
+	{
+		objects[0]->SetActorLocation(worldPos);
+	}
 }
 
 
