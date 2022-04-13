@@ -1,8 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "BitboardStatic.h"
-
 #include "BitFunctions.h"
 #include "Math/UnrealMathUtility.h"
 
@@ -16,35 +14,107 @@ ABitboardStatic::ABitboardStatic()
 void ABitboardStatic::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	PlayerInputComponent->BindAction(TEXT("MouseLeftClicked"),IE_Pressed, this, &ABitboardStatic::HandleLMB);
+	PlayerInputComponent->BindAction(TEXT("MouseRightClicked"),IE_Pressed, this, &ABitboardStatic::HandleRMB);
+	PlayerInputComponent->BindAction(TEXT("MouseWheelUp"),IE_Pressed, this, &ABitboardStatic::HandleWheelUp);
+	PlayerInputComponent->BindAction(TEXT("MouseWheelDown"),IE_Pressed, this, &ABitboardStatic::HandleWheelDown);
 }
 
 void ABitboardStatic::HandleLMB(FKey key)
 {
-	SpawnTree(0,0,4);
+	if (isMouseOnGrid)
+	{
+		SpawnTree(mousePosGrid.X, mousePosGrid.Y,tileToPlace);
+	}
 }
 
+void ABitboardStatic::HandleRMB(FKey key)
+{
+	bool once = true;
+	if (isMouseOnGrid)
+	{
+		for (int i = 0; i < selectionTiles.Num(); ++i)
+		{
+			if(once && RemoveTree(mousePosGrid.X, mousePosGrid.Y,i))
+			{
+				once = false;
+			}
+			else if(!once)
+			{
+				ResetPosition(mousePosGrid.X, mousePosGrid.Y,i);
+			}
+		}
+	}
+}
+
+void ABitboardStatic::HandleWheelUp(FKey key)
+{
+	DeselectTile();
+	tileToPlace--;
+	SelectTile();
+}
+
+void ABitboardStatic::HandleWheelDown(FKey key)
+{
+	DeselectTile();
+	tileToPlace++;
+	SelectTile();
+}
+
+void ABitboardStatic::DeselectTile()
+{
+	selectionTiles[tileToPlace]->selected = false;
+	selectionTiles[tileToPlace]->ResetScale();
+}
+
+void ABitboardStatic::SelectTile()
+{
+	int size = bitObjsBPs.Num();
+	tileToPlace = ((tileToPlace % size) + size) % size;
+	selectionTiles[tileToPlace]->selected = true;
+}
+
+// Spawns
 void ABitboardStatic::SpawnTile(TArray<TSubclassOf<ABitTile>>& bitBPs,
-                                TArray<uint64>& bitboard, TArray<ABitTile*>& tileActors, int x, int y, int rand)
+                                TArray<uint64>& bitboard, TArray<ABitTile*>& tileActors, int x, int y, int tileType)
 {
-	FVector pos(x * tileSizeX - offsetX, y * tileSizeY - offsetY, 0);
-	pos += GetActorLocation();
-			
-	bitboard[rand] = UBitFunctions::BbSetCellState
-		(bitboard[rand], UBitFunctions::BbGetIndex(x, y, tilesX));
-	tileActors[UBitFunctions::BbGetIndex(x, y, tilesX)] =
-		GetWorld()->SpawnActor<ABitTile>(bitBPs[rand], pos, GetActorRotation());
+	bitboard[tileType] = UBitFunctions::BbSetCellState
+		(bitboard[tileType], UBitFunctions::BbGetIndex(x, y, gridSize.X));
+	tileActors[UBitFunctions::BbGetIndex(x, y, gridSize.X)] =
+		GetWorld()->SpawnActor<ABitTile>(bitBPs[tileType], GetTileCenter(x, y), GetActorRotation());
 }
 
-void ABitboardStatic::SpawnTree(int x, int y, int index)
+void ABitboardStatic::RemoveTile(TArray<uint64>& bitboard, TArray<ABitTile*>& tileActors, int x, int y, int tileType) const
 {
-	SpawnTile(bitObjsBPs, objBitboards, objects, x, y, index);
+	bitboard[tileType] = UBitFunctions::BbRemoveCellState
+		(bitboard[tileType], UBitFunctions::BbGetIndex(x, y, gridSize.X));
+	tileActors[UBitFunctions::BbGetIndex(x, y, gridSize.X)]->Destroy();
+	//todo pool it damn it
+}
+
+bool ABitboardStatic::RemoveTree(int x, int y, int tileType)
+{
+	if (UBitFunctions::BbGetCellState(objBitboards[tileType], UBitFunctions::BbGetIndex(x, y, gridSize.X)))
+	{
+		RemoveTile(objBitboards, objects[tileType], x, y, tileType);
+		return true;
+	}
+	return false;
+}
+
+void ABitboardStatic::SpawnTree(int x, int y, int tileType)
+{
+	if (CheckIfCanSpawn(x, y, tileType))
+	{
+		SpawnTile(bitObjsBPs, objBitboards, objects[tileType], x, y, tileType);
+		AdjustPosition(x, y, tileType);
+	}
 }
 
 void ABitboardStatic::SpawnAllTiles()
 {
-	for (int x = 0; x < tilesX; ++x)
+	for (int x = 0; x < gridSize.X; ++x)
 	{
-		for (int y = 0; y < tilesY; ++y)
+		for (int y = 0; y < gridSize.Y; ++y)
 		{
 			int rand = FMath::RandRange(0, bitTilesBPs.Num() - 1);
 			SpawnTile(bitTilesBPs, tileBitboards, tiles, x, y, rand);
@@ -52,47 +122,101 @@ void ABitboardStatic::SpawnAllTiles()
 	}
 }
 
-void ABitboardStatic::SpawnAllTrees()
+bool ABitboardStatic::CheckIfCanSpawn(int x, int y, int treeType)
 {
-	for (int x = 0; x < tilesX; ++x)
+	if (UBitFunctions::BbGetCellState(objBitboards[treeType], UBitFunctions::BbGetIndex(x, y, gridSize.X)) ||
+		UBitFunctions::BbGetCellState(tileBitboards[6], UBitFunctions::BbGetIndex(x, y, gridSize.X)))
 	{
-		for (int y = 0; y < tilesY; ++y)
+		return false;
+	}
+	switch (treeType)
+	{
+	case 0: //green
+		return UBitFunctions::BbGetCellState(tileBitboards[0], UBitFunctions::BbGetIndex(x, y, gridSize.X));
+	case 1: //orange
+		return UBitFunctions::BbGetCellState(tileBitboards[1], UBitFunctions::BbGetIndex(x, y, gridSize.X));
+	case 2: //purple
+		return UBitFunctions::BbGetCellState(tileBitboards[2], UBitFunctions::BbGetIndex(x, y, gridSize.X));
+	case 3: //red
+		return UBitFunctions::BbGetCellState(tileBitboards[3], UBitFunctions::BbGetIndex(x, y, gridSize.X));
+	case 4: //pink
+		return UBitFunctions::BbGetCellState(tileBitboards[2] | tileBitboards[3], UBitFunctions::BbGetIndex(x, y, gridSize.X));
+	case 5: //blue
+		return UBitFunctions::BbGetCellState(tileBitboards[4] | tileBitboards[5], UBitFunctions::BbGetIndex(x, y, gridSize.X));
+	case 6: //white
+		return UBitFunctions::BbGetCellState(tileBitboards[5], UBitFunctions::BbGetIndex(x, y, gridSize.X));
+	default:
+		return false;
+	}
+}
+
+void ABitboardStatic::AdjustPosition(int x, int y, int treeType)
+{
+	int index = UBitFunctions::BbGetIndex(x, y, gridSize.X);
+	for (int i = 0; i < selectionTiles.Num(); ++i)
+	{
+		for (int j = 0; j < selectionTiles.Num(); ++j)
 		{
-			if (UBitFunctions::BbGetCellState(tileBitboards[0],
-			UBitFunctions::BbGetIndex(x, y, tilesX)))
+			if (treeType == i && UBitFunctions::BbGetCellState(objBitboards[j], index))
 			{
-				SpawnTree(x, y, 0);
-			}
-			if (UBitFunctions::BbGetCellState(tileBitboards[4],
-			UBitFunctions::BbGetIndex(x, y, tilesX)))
-			{
-				SpawnTree(x, y, 4);
-			}
-			if (UBitFunctions::BbGetCellState(tileBitboards[2] | tileBitboards[3],
-			UBitFunctions::BbGetIndex(x, y, tilesX)))
-			{
-				SpawnTree(x, y, 5);
+				FVector location = objects[i][index]->GetActorLocation();
+				objects[i][index]->SetActorLocation(location + treeOffset);
+				location = objects[j][index]->GetActorLocation();
+				objects[j][index]->SetActorLocation(location - treeOffset);
 			}
 		}
 	}
 }
 
-FIntVector ABitboardStatic::WorldToGrid(FVector pos)
+void ABitboardStatic::ResetPosition(int x, int y, int treeType)
 {
-	FIntVector coord = {FMath::RoundToInt((pos.X + offsetX) / tileSizeX),
-						FMath::RoundToInt((pos.Y + offsetY) / tileSizeY), 0};
+	int index = UBitFunctions::BbGetIndex(x, y, gridSize.X);
+	if (UBitFunctions::BbGetCellState(objBitboards[treeType], index))
+	{
+		objects[treeType][index]->SetActorLocation(GetTileCenter(x, y));
+	}
+}
+
+// Grids
+FVector ABitboardStatic::GetTileCenter(int x, int y) const
+{
+	FVector pos(x * tileSize.X - offsetX, y * tileSize.Y - offsetY, 0);
+	return pos += GetActorLocation();
+}
+
+FIntVector ABitboardStatic::WorldToGrid(FVector pos) const
+{
+	FIntVector coord = {FMath::RoundToInt((pos.X + offsetX) / tileSize.X),
+						FMath::RoundToInt((pos.Y + offsetY) / tileSize.Y), 0};
 	return coord;
 }
 
 FVector ABitboardStatic::GridToWorld(FIntVector coord)
 {
-	int index = UBitFunctions::BbGetIndex(coord.X, coord.Y, tilesX);
-	bool checkBounds = coord.X >= 0 && coord.X < tilesX && coord.Y >= 0 && coord.Y < tilesY;
-	if (checkBounds && index < tilesX * tilesY && index >= 0)
+	int index = UBitFunctions::BbGetIndex(coord.X, coord.Y, gridSize.X);
+	bool checkBounds = coord.X >= 0 && coord.X < gridSize.X && coord.Y >= 0 && coord.Y < gridSize.Y;
+	if (checkBounds && index < gridSize.X * gridSize.Y && index >= 0)
 	{
 		return tiles[index]->GetActorLocation();
 	}
 	return FVector::ZeroVector;
+}
+
+void ABitboardStatic::InitializeArrays()
+{
+	for(auto& tile : bitTilesBPs)
+	{
+		tileBitboards.Add(UBitFunctions::ClearAllFrags());
+	}
+	tiles.Init(nullptr, gridSize.X * gridSize.Y);
+	
+	for(int i = 0; i < bitObjsBPs.Num(); i++)
+	{
+		objBitboards.Add(UBitFunctions::ClearAllFrags());
+		TArray<ABitTile*> temp;
+		temp.Init(nullptr, gridSize.X * gridSize.Y);
+		objects.Add(temp);
+	}
 }
 
 // Called when the game starts or when spawned
@@ -102,20 +226,9 @@ void ABitboardStatic::BeginPlay()
 	controller = GetWorld()->GetFirstPlayerController();
 	controller->SetShowMouseCursor(true);
 	
-	for(auto& tile : bitTilesBPs)
-	{
-		tileBitboards.Add(UBitFunctions::ClearAllFrags());
-	}
-	for(auto& tile : bitObjsBPs)
-	{
-		objBitboards.Add(UBitFunctions::SetAllFlags());
-	}
-	tiles.Init(nullptr, tilesX * tilesY);
-	objects.Init(nullptr, tilesX * tilesY);
-	
+	InitializeArrays();
 	SpawnAllTiles();
-	//SpawnAllTrees();
-	SpawnTree(0, 0, 0);
+	SelectTile();
 }
 
 // Called every frame
@@ -134,16 +247,17 @@ void ABitboardStatic::Tick(float DeltaTime)
 	FVector intersectPoint = FMath::RayPlaneIntersection(outpos, outdir, plane);
 
 	FIntVector gridPos = WorldToGrid(intersectPoint);
+	mousePosGrid = gridPos;
 	FVector worldPos = GridToWorld(gridPos);
 	
 	if (worldPos == FVector::ZeroVector)
 	{
-		objects[0]->SetActorLocation(intersectPoint);
+		//objects[0][0]->SetActorLocation(intersectPoint);
+		isMouseOnGrid = false;
 	}
 	else
 	{
-		objects[0]->SetActorLocation(worldPos);
+		//objects[0][0]->SetActorLocation(worldPos);
+		isMouseOnGrid = true;
 	}
 }
-
-

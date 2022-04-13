@@ -123,6 +123,14 @@ void ABitTestActor::BeginPlay()
 	PrintBit(count); //0000 0010
 	count = UBitFunctions::BbGetEmptyCellCount(bitboard);
 	PrintBit(count); //0000 0010
+
+	Print("move");
+	bitboard = UBitFunctions::BbSwapCells(bitboard,
+		UBitFunctions::BbGetIndex(1, 1, 8), UBitFunctions::BbGetIndex(1, 3, 8));
+	PrintBit(bitboard, 8);
+	bitboard = UBitFunctions::BbSwapCells(bitboard,
+		UBitFunctions::BbGetIndex(1, 3, 8), UBitFunctions::BbGetIndex(1, 1, 8));
+	PrintBit(bitboard, 8);
 }
 
 

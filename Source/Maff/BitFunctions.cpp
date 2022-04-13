@@ -99,6 +99,23 @@ BitType UBitFunctions::BbSetCellState(BitType board, size_t index)
 	return AddBitflag(board, newBit);
 }
 
+BitType UBitFunctions::BbRemoveCellState(BitType board, size_t index)
+{
+	BitType newBit = BbGetValueMask(index);
+	return RemoveBitFlag(board, newBit);
+}
+
+BitType UBitFunctions::BbSwapCells(BitType board, size_t index1, size_t index2)
+{
+	if (BbGetCellState(board, index1) && !BbGetCellState(board, index2) ||
+		BbGetCellState(board, index2) && !BbGetCellState(board, index1))
+	{
+		board = BbRemoveCellState(board, index1);
+		board = BbSetCellState(board, index2);
+	}
+	return board;
+}
+
 bool UBitFunctions::BbGetCellState(BitType board, size_t index)
 {
 	BitType mask = BbGetValueMask(index);
@@ -119,4 +136,70 @@ size_t UBitFunctions::BbGetCellCount(BitType board)
 size_t UBitFunctions::BbGetEmptyCellCount(BitType board)
 {
 	return GetBitTypeSize(board) - BbGetCellCount(board);
+}
+
+BitType UBitFunctions::BitAdd(BitType a, BitType b)
+{
+	while (b != 0) 
+	{ 
+		int c = a & b;   
+		a = a ^ b;  
+		b = c << 1; 
+	} 
+	return a; 
+}
+
+BitType UBitFunctions::BitSubstract(BitType a, BitType b)
+{
+	while (b != 0) 
+	{ 
+		int borrow = (~a) & b; 
+		a = a ^ b; 
+		b = borrow << 1; 
+	} 
+	return a;
+}
+
+BitType UBitFunctions::BitMultiply(BitType a, BitType b)
+{
+	int answer = 0; 
+	int count = 0; 
+	while (b != 0) 
+	{ 
+		if (b % 2 == 1)
+		{               
+			answer += a << count;
+		}
+		count++; 
+		b /= 2; 
+	} 
+	return answer;
+}
+
+BitType UBitFunctions::BitDivide(BitType a, BitType b)
+{
+	//todo impliment this
+	return 0;
+}
+
+void UBitFunctions::BitSwap(BitType& a, BitType& b)
+{
+	a ^= b;
+	b ^= a;
+	a ^= b;
+}
+
+bool UBitFunctions::BitCompareSign(BitType a, BitType b)
+{
+	return 0 <= (a ^ b); 
+}
+
+BitType UBitFunctions::BitMin(BitType a, BitType b)
+{
+	return b ^ ((a ^ b) & -((a < b)?1:0));
+}
+
+BitType UBitFunctions::BitMax(BitType a, BitType b)
+{
+	return a ^ ((a ^ b) & -((a < b)?1:0));
 }
