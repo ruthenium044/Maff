@@ -4,9 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "Core/Public/Containers/Array.h"
-#include "BitTile.h"
-
 #include "BitboardStatic.generated.h"
+
+class ABitTile;
 
 UCLASS()
 class MAFF_API ABitboardStatic : public APawn
@@ -17,10 +17,16 @@ public:
 	ABitboardStatic();
 
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
-	void HandleLMB(FKey key);
-	void HandleRMB(FKey key);
+	
+	void HandleLMBPressed(FKey key);
+	void HandleLMBReleased(FKey key);
+	void HandleRMBPressed(FKey key);
 	void HandleWheelUp(FKey key);
 	void HandleWheelDown(FKey key);
+
+	bool GetCellState(int newIndex);
+	void PickUpTile(int i, int index);
+	void ChangeTilesPosition(int newIndex);
 	void DeselectTile();
 	void SelectTile();
 	
@@ -33,6 +39,7 @@ public:
 	bool CheckIfCanSpawn(int x, int y, int treeType);
 	
 	void AdjustPosition(int x, int y, int treeType);
+	void AdjustAllPositions(int x, int y);
 	void ResetPosition(int x, int y, int treeType);
 
 	FVector GetTileCenter(int x, int y) const;
@@ -49,7 +56,12 @@ private:
 	APlayerController* controller;
 	FIntVector mousePosGrid{0, 0, 0};
 	bool isMouseOnGrid = false;
+
 	int tileToPlace = 0;
+	bool pickedUpTile = false;
+	int pickedUpTileType = 0;
+	int pickedUpTileIndex = 0;
+	FVector pickedUpPos{0, 0, 0};
 
 	FVector2D gridSize{8, 8};
 	float offsetX = gridSize.X * tileSize.X / 2 - tileSize.X / 2;
