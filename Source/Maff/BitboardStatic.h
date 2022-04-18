@@ -39,7 +39,7 @@ public:
 	bool CheckIfCanSpawn(int x, int y, int treeType);
 	
 	void AdjustPosition(int x, int y, int treeType);
-	void AdjustAllPositions(int x, int y);
+	void ResetAllPositions(int x, int y);
 	void ResetPosition(int x, int y, int treeType);
 
 	FVector GetTileCenter(int x, int y) const;
@@ -49,6 +49,9 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	FVector2D tileSize {100, 100};
+
+	UPROPERTY(EditAnywhere)
+	float tileHover = 20;
 private:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -56,6 +59,7 @@ private:
 	APlayerController* controller;
 	FIntVector mousePosGrid{0, 0, 0};
 	bool isMouseOnGrid = false;
+	bool spawned = false;
 
 	int tileToPlace = 0;
 	bool pickedUpTile = false;

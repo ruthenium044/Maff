@@ -23,21 +23,23 @@ void ABitboardStatic::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 
 void ABitboardStatic::HandleLMBPressed(FKey key)
 {
-	if (isMouseOnGrid)
+	if (isMouseOnGrid && !pickedUpTile)
 	{
+		int index = UBitFunctions::BbGetIndex(mousePosGrid.X, mousePosGrid.Y, gridSize.X);
+		if (!UBitFunctions::BbGetCellState(objBitboards[tileToPlace], index) && !spawned)
+		{
+			SpawnTree(mousePosGrid.X, mousePosGrid.Y,tileToPlace);
+			AdjustPosition(mousePosGrid.X, mousePosGrid.Y, tileToPlace);
+		}
+
 		for (int i = 0; i < selectionTiles.Num(); ++i)
 		{
-			int index = UBitFunctions::BbGetIndex(mousePosGrid.X, mousePosGrid.Y, gridSize.X);
-			if (UBitFunctions::BbGetCellState(objBitboards[i], index))
+			index = UBitFunctions::BbGetIndex(mousePosGrid.X, mousePosGrid.Y, gridSize.X);
+			if (UBitFunctions::BbGetCellState(objBitboards[i], index) && !spawned)
 			{
 				PickUpTile(i, index);
 			}
-			else
-			{
-				SpawnTree(mousePosGrid.X, mousePosGrid.Y,tileToPlace);
-			}
 		}
-		
 	}
 }
 
@@ -49,15 +51,18 @@ void ABitboardStatic::HandleLMBReleased(FKey key)
 		if(!GetCellState(newIndex))
 		{
 			ChangeTilesPosition(newIndex);
-			//AdjustAllPositions(mousePosGrid.X, mousePosGrid.Y);
 		}
 		else
 		{
 			objects[pickedUpTileType][pickedUpTileIndex]->SetActorLocation(pickedUpPos);
-			
 		}
-		pickedUpTile = nullptr;
+		pickedUpTile = false;
+		
+		auto gridPos = WorldToGrid(pickedUpPos);
+		AdjustPosition(gridPos.X, gridPos.Y, pickedUpTileType);
+		AdjustPosition(mousePosGrid.X, mousePosGrid.Y, pickedUpTileType);
 	}
+	spawned = false;
 }
 
 void ABitboardStatic::HandleRMBPressed(FKey key)
@@ -167,8 +172,8 @@ void ABitboardStatic::SpawnTree(int x, int y, int tileType)
 {
 	if (CheckIfCanSpawn(x, y, tileType))
 	{
+		spawned = true;
 		SpawnTile(bitObjsBPs, objBitboards, objects[tileType], x, y, tileType);
-		AdjustPosition(x, y, tileType);
 	}
 }
 
@@ -214,12 +219,14 @@ bool ABitboardStatic::CheckIfCanSpawn(int x, int y, int treeType)
 
 void ABitboardStatic::AdjustPosition(int x, int y, int treeType)
 {
+	ResetAllPositions(x, y);
 	int index = UBitFunctions::BbGetIndex(x, y, gridSize.X);
 	for (int i = 0; i < selectionTiles.Num(); ++i)
 	{
 		for (int j = 0; j < selectionTiles.Num(); ++j)
 		{
-			if (treeType == i && UBitFunctions::BbGetCellState(objBitboards[j], index))
+			if (treeType == i && UBitFunctions::BbGetCellState(objBitboards[j], index) &&
+				UBitFunctions::BbGetCellState(objBitboards[i], index))
 			{
 				FVector location = objects[i][index]->GetActorLocation();
 				objects[i][index]->SetActorLocation(location + treeOffset);
@@ -230,11 +237,11 @@ void ABitboardStatic::AdjustPosition(int x, int y, int treeType)
 	}
 }
 
-void ABitboardStatic::AdjustAllPositions(int x, int y)
+void ABitboardStatic::ResetAllPositions(int x, int y)
 {
 	for (int i = 0; i < selectionTiles.Num(); ++i)
 	{
-		AdjustPosition(x, y, i);
+		ResetPosition(x, y, i);
 	}
 }
 
@@ -324,7 +331,7 @@ void ABitboardStatic::Tick(float DeltaTime)
 	{
 		if (pickedUpTile)
 		{
-			objects[pickedUpTileType][pickedUpTileIndex]->SetActorLocation(intersectPoint);
+			objects[pickedUpTileType][pickedUpTileIndex]->SetActorLocation(intersectPoint + FVector::UpVector * tileHover);
 		}
 		isMouseOnGrid = false;
 	}
@@ -332,7 +339,7 @@ void ABitboardStatic::Tick(float DeltaTime)
 	{
 		if (pickedUpTile)
 		{
-			objects[pickedUpTileType][pickedUpTileIndex]->SetActorLocation(worldPos);
+			objects[pickedUpTileType][pickedUpTileIndex]->SetActorLocation(worldPos + FVector::UpVector * tileHover);
 		}
 		isMouseOnGrid = true;
 	}
