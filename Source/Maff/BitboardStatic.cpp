@@ -51,16 +51,15 @@ void ABitboardStatic::HandleLMBReleased(FKey key)
 		if(!GetCellState(newIndex))
 		{
 			ChangeTilesPosition(newIndex);
+			auto gridPos = WorldToGrid(pickedUpPos);
+			AdjustPosition(gridPos.X, gridPos.Y, pickedUpTileType);
+			AdjustPosition(mousePosGrid.X, mousePosGrid.Y, pickedUpTileType);
 		}
 		else
 		{
 			objects[pickedUpTileType][pickedUpTileIndex]->SetActorLocation(pickedUpPos);
 		}
 		pickedUpTile = false;
-		
-		auto gridPos = WorldToGrid(pickedUpPos);
-		AdjustPosition(gridPos.X, gridPos.Y, pickedUpTileType);
-		AdjustPosition(mousePosGrid.X, mousePosGrid.Y, pickedUpTileType);
 	}
 	spawned = false;
 }
