@@ -1,0 +1,8 @@
+Simple grid where you can grow and cut trees. 
+The rules according to which trees can grow on specific 
+tiles are illustrated on the left of the board. 
+Selected tree is indicated by pulsating anim.
+Drag and drop trees to change their location
+LMB for grow 
+RMB for cut 
+Scroll to change tree selection
