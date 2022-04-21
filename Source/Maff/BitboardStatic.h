@@ -8,7 +8,7 @@
 
 class ABitTile;
 
-UCLASS()
+UCLASS(Blueprintable)
 class MAFF_API ABitboardStatic : public APawn
 {
 	GENERATED_BODY()
@@ -52,6 +52,9 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	float tileHover = 20;
+
+	UPROPERTY(BlueprintReadOnly, Category="Bits")
+	int tileToPlace = 0;
 private:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -61,7 +64,6 @@ private:
 	bool isMouseOnGrid = false;
 	bool spawned = false;
 
-	int tileToPlace = 0;
 	bool pickedUpTile = false;
 	int pickedUpTileType = 0;
 	int pickedUpTileIndex = 0;
