@@ -3,7 +3,7 @@
 
 #include "BitFunctions.h"
 
-FString UBitFunctions::GetBitSting(BitType value, size_t width)
+FString UBitFunctions::GetBitSting(BitType value, int64 width)
 {
 	FString str = "";
 	for (int i = sizeof(value) * 8 - 1; i >= 0; --i)
@@ -23,7 +23,7 @@ FString UBitFunctions::GetBitSting(BitType value, size_t width)
 	return str;
 }
 
-size_t UBitFunctions::GetBitTypeSize(BitType value)
+int64 UBitFunctions::GetBitTypeSize(BitType value)
 {
 	return sizeof(value) * 8;
 }
@@ -71,41 +71,41 @@ bool UBitFunctions::CheckBitmaskHas(BitType flag, BitType mask)
 	return (flag & mask) == mask;
 }
 
-BitType UBitFunctions::PackData(BitType packed, size_t position, BitType data)
+BitType UBitFunctions::PackData(BitType packed, int64 position, BitType data)
 {
 	packed |= (data << position);
 	return packed;
 }
 
-BitType UBitFunctions::UnPackData(BitType packed, size_t position, BitType data)
+BitType UBitFunctions::UnPackData(BitType packed, int64 position, BitType data)
 {
 	int mask = data << position;
 	return (packed & mask) >> position;
 }
 
-BitType UBitFunctions::BbGetIndex(size_t x, size_t y, size_t w)
+BitType UBitFunctions::BbGetIndex(int64 x, int64 y, int64 w)
 {
 	return x * w + y;
 }
 
-BitType UBitFunctions::BbGetValueMask(size_t index)
+BitType UBitFunctions::BbGetValueMask(int64 index)
 {
 	return static_cast<BitType>(1) << index;
 }
 
-BitType UBitFunctions::BbSetCellState(BitType board, size_t index)
+BitType UBitFunctions::BbSetCellState(BitType board, int64 index)
 {
 	BitType newBit = BbGetValueMask(index);
 	return AddBitflag(board, newBit);
 }
 
-BitType UBitFunctions::BbRemoveCellState(BitType board, size_t index)
+BitType UBitFunctions::BbRemoveCellState(BitType board, int64 index)
 {
 	BitType newBit = BbGetValueMask(index);
 	return RemoveBitFlag(board, newBit);
 }
 
-BitType UBitFunctions::BbSwapCells(BitType board, size_t index1, size_t index2)
+BitType UBitFunctions::BbSwapCells(BitType board, int64 index1, int64 index2)
 {
 	if (BbGetCellState(board, index1) && !BbGetCellState(board, index2) ||
 		BbGetCellState(board, index2) && !BbGetCellState(board, index1))
@@ -116,15 +116,15 @@ BitType UBitFunctions::BbSwapCells(BitType board, size_t index1, size_t index2)
 	return board;
 }
 
-bool UBitFunctions::BbGetCellState(BitType board, size_t index)
+bool UBitFunctions::BbGetCellState(BitType board, int64 index)
 {
 	BitType mask = BbGetValueMask(index);
 	return CheckBitmaskIntersect(board, mask);
 }
 
-size_t UBitFunctions::BbGetCellCount(BitType board)
+int64 UBitFunctions::BbGetCellCount(BitType board)
 {
-	size_t count = 0;
+	int64 count = 0;
 	while(board != 0)
 	{
 		board &= board - 1;
@@ -133,7 +133,7 @@ size_t UBitFunctions::BbGetCellCount(BitType board)
 	return count;
 }
 
-size_t UBitFunctions::BbGetEmptyCellCount(BitType board)
+int64 UBitFunctions::BbGetEmptyCellCount(BitType board)
 {
 	return GetBitTypeSize(board) - BbGetCellCount(board);
 }

@@ -6,7 +6,7 @@
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "BitFunctions.generated.h"
 
-typedef uint64 BitType;
+typedef int64 BitType;
 
 UCLASS()
 class MAFF_API UBitFunctions : public UBlueprintFunctionLibrary
@@ -15,32 +15,32 @@ class MAFF_API UBitFunctions : public UBlueprintFunctionLibrary
 
 	//todo doesn't work with longer arrays of bits and should
 	//actually work with it - Requires an underlying "true" type
-	//todo make it all UFUNCTION 
+	//todo make it all UFUNCTION
 	
 public:
-	static FString GetBitSting(BitType value, size_t width);
-	static size_t GetBitTypeSize(BitType value);
+	static FString GetBitSting(BitType value, int64 width);
+	static int64 GetBitTypeSize(BitType value);
 	
     static BitType SetBitflag(BitType value);
 	static BitType AddBitflag(BitType flag, BitType value);
 	static BitType RemoveBitFlag(BitType flag, BitType value);
 	static BitType ToggleBitFlag(BitType flag, BitType value);
 	static BitType ClearAllFrags();
-	static BitType SetAllFlags();
+	static BitType SetAllFlags();	
 	
 	static bool CheckBitmaskIntersect(BitType flag, BitType mask);
 	static bool CheckBitmaskHas(BitType flag, BitType mask);
-	static BitType PackData(BitType packed, size_t position, BitType data);
-	static BitType UnPackData(BitType packed, size_t position, BitType data);
+	static BitType PackData(BitType packed, int64 position, BitType data);
+	static BitType UnPackData(BitType packed, int64 position, BitType data);
 	
-	static BitType BbGetIndex(size_t x, size_t y, size_t w);
-	static BitType BbGetValueMask(size_t index);
-	static BitType BbSetCellState(BitType board, size_t index);
-	static BitType BbRemoveCellState(BitType board, size_t index);
-	static BitType BbSwapCells(BitType board, size_t index1, size_t index2);
-	static bool BbGetCellState(BitType board, size_t index);
-	static size_t BbGetCellCount(BitType board);
-	static size_t BbGetEmptyCellCount(BitType board);
+	static BitType BbGetIndex(int64 x, int64 y, int64 w);
+	static BitType BbGetValueMask(int64 index);
+	static BitType BbSetCellState(BitType board, int64 index);
+	static BitType BbRemoveCellState(BitType board, int64 index);
+	static BitType BbSwapCells(BitType board, int64 index1, int64 index2);
+	static bool BbGetCellState(BitType board, int64 index);
+	static int64 BbGetCellCount(BitType board);
+	static int64 BbGetEmptyCellCount(BitType board);
 
 	static BitType BitAdd(BitType a, BitType b);
 	static BitType BitSubstract(BitType a, BitType b);
