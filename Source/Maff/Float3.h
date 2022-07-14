@@ -4,29 +4,32 @@
 
 #include "CoreMinimal.h"
 
-USTRUCT()
-struct MAFF_API Float3
-{
-	float x, y, z;
-	Float3() = default;
-	~Float3() = default;
-	Float3(float x, float y, float z);
-
-	float& operator[](int i);
-	const float& operator[](int i) const;
-
-	Float3& operator *=(float s);
-	Float3& operator /=(float s);
-	Float3 operator *(float s) const;
-	Float3 operator /(float s) const;
+//USTRUCT()
+//struct MAFF_API Float3
+//{
+	//GENERATED_BODY()
 	
-	Float3 operator -(const Float3& v) const;
-	Float3& operator +=(const Float3& v);
-	Float3& operator -=(const Float3& v);
-	Float3 operator +(const Float3& v) const;
-	Float3 operator -(const Float3& v);
+	//float x;
+	//float y;
+	//float z;
+	//Float3() = default;
+	//~Float3() = default;
+	//Float3(float x, float y, float z);
+	//
+	//float& operator[](int i);
+	//const float& operator[](int i) const;
+	//
+	//Float3& operator *=(float s);
+	//Float3& operator /=(float s);
+	//Float3 operator *(float s) const;
+	//Float3 operator /(float s) const;
+	//
+	//Float3 operator -(const Float3& v) const;
+	//Float3& operator +=(const Float3& v);
+	//Float3& operator -=(const Float3& v);
+	//Float3 operator +(const Float3& v) const;
+	//Float3 operator -(const Float3& v);
 	
-	
-	float Magnitude() const;
-	Float3 Normalize() const;
-};
+	//float Magnitude() const;
+	//Float3 Normalize() const;
+//};
